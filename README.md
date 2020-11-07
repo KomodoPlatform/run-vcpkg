@@ -1,11 +1,16 @@
 [![Action Status](https://github.com/lukka/run-vcpkg/workflows/build-test/badge.svg)](https://github.com/lukka/run-vcpkg/actions)
 
+[![Coverage Status](https://coveralls.io/repos/github/lukka/run-vcpkg/badge.svg?branch=main)](https://coveralls.io/github/lukka/run-vcpkg?branch=main)
+
 # [The **run-vcpkg** action for caching artifacts and using vcpkg on GitHub](https://github.com/marketplace/actions/run-vcpkg)
 
 The **run-vcpkg** action restores from cache [vcpkg](https://github.com/microsoft/vcpkg) along with the previously installed ports. Briefly:
  - If there is a cache miss, vpckg is fetched and installed; the cache's key is composed by hashing the hosting OS name, the command line arguments and the vcpkg's commit id.
- - Then `vcpkg` is run to install the desired ports. This is a no-op if artifacts are already restored; this step can be skipped with `setupOnly:true`;
- - Artifacts and vcpkg are finally cached (if needed) with a post action at the end of the `job`.
+    - Restoring from cache can be skipped with `doNotCache:true`.
+ - Then `vcpkg` is run to install the desired ports. This is a no-op if artifacts are already restored. 
+    - This step can be skipped with `setupOnly:true`.
+ - Artifacts and vcpkg are then saved in cache (if it was a 'cache miss').
+    - Saving to cache can be skipped with `doNotCache:true`.
 
 The provided [samples](#samples) use [GitHub hosted runners](https://help.github.com/en/actions/automating-your-workflow-with-github-actions/virtual-environments-for-github-hosted-runners).
 
@@ -45,7 +50,7 @@ It is __highly recommended__ to [use vcpkg as a submodule](#best-practices). Her
 
     # Restore from cache the previously built ports. If "cache miss", then provision vcpkg, install desired ports, finally cache everything for the next run.
     - name: Restore from cache and run vcpkg
-      uses: lukka/run-vcpkg@v3
+      uses: lukka/run-vcpkg@v5
       with:
         # Response file stored in source control, it provides the list of ports and triplet(s).
         vcpkgArguments: '@${{ env.vcpkgResponseFile }}'
@@ -56,7 +61,7 @@ It is __highly recommended__ to [use vcpkg as a submodule](#best-practices). Her
         appendedCacheKey: ${{ hashFiles(env.vcpkgResponseFile) }}
 
     - name: 'Build with CMake and Ninja'
-      uses: lukka/run-cmake@v2
+      uses: lukka/run-cmake@v3
       with:
         cmakeListsOrSettingsJson: CMakeListsTxtAdvanced
         cmakeListsTxtPath: '${{ github.workspace }}/cmakesettings.json/CMakeLists.txt'
@@ -77,7 +82,7 @@ When `setupOnly: true`, it only setups vcpkg and set VCPKG_ROOT environment vari
     # Restore from cache the previously built ports. If cache-miss, download, build vcpkg.
     - name: Restore from cache and install vcpkg
       # Download and build vcpkg, without installing any port. If content is cached already, it is a no-op.
-      uses: lukka/run-vcpkg@v3
+      uses: lukka/run-vcpkg@v5
       with:
         setupOnly: true
     # Now that vcpkg is installed, it is being used to run desired arguments.
@@ -89,12 +94,12 @@ When `setupOnly: true`, it only setups vcpkg and set VCPKG_ROOT environment vari
 
 ### <a id='flowchart'>Flowchart</a>
 
-![run-vcpkg flowchart](https://raw.githubusercontent.com/lukka/run-cmake-vcpkg-action-libs/master/run-vcpkg-lib/docs/task-vcpkg.png
+![run-vcpkg flowchart](https://raw.githubusercontent.com/lukka/run-cmake-vcpkg-action-libs/main/packages/run-vcpkg-lib/docs/task-vcpkg.png
 )
 
 ### <a id='reference'>Action reference: all input/output parameters</a>
 
-[action.yml](https://github.com/lukka/run-vcpkg/blob/master/action.yml)
+[action.yml](https://github.com/lukka/run-vcpkg/blob/main/action.yml)
 
 ## Best practices
 
@@ -144,35 +149,24 @@ it is instead possible to run
 
 ## <a id='projects'>Real world project samples</a>
 
-project: [CppOpenGLWebAssemblyCMake](https://github.com/lukka/CppOpenGLWebAssemblyCMake) | |
-|----------|-------|
-[WASM/Linux/macOS](https://github.com/lukka/CppOpenGLWebAssemblyCMake/blob/master/.github/workflows/build.yml) | [![Actions Status](https://github.com/lukka/CppOpenGLWebAssemblyCMake/workflows/hosted-wasm-macos-linux/badge.svg)](https://github.com/lukka/CppOpenGLWebAssemblyCMake/actions)
-
-project: [codehz/wine-bdlauncher](https://github.com/codehz/wine-bdlauncher) | |
-|----------|-------|
-[Windows](https://github.com/codehz/wine-bdlauncher/blob/master/.github/workflows/ci.yml) | [![CI](https://github.com/codehz/wine-bdlauncher/workflows/CI/badge.svg)](https://github.com/codehz/wine-bdlauncher/actions)
-
-project: [OPM/ResInsight](https://github.com/OPM/ResInsight/) | |
-|----------|-------|
-[Windows/Linux](https://github.com/OPM/ResInsight/blob/dev/.github/workflows/main.yml) | [![CI](https://github.com/OPM/ResInsight/workflows/ResInsight%20Build/badge.svg)](https://github.com/OPM/ResInsight/actions)
-
-project: [Mudlet/Mudlet](https://github.com/Mudlet/Mudlet) | |
-|----------|-------|
-[Linux/macOS](https://github.com/Mudlet/Mudlet/blob/development/.github/workflows/build-mudlet.yml) | [![Build Mudlet](https://github.com/Mudlet/Mudlet/workflows/Build%20Mudlet/badge.svg)](https://github.com/Mudlet/Mudlet/actions)
-
-project: [otland/forgottenserver](https://github.com/otland/forgottenserver) | |
-|----------|-------|
-[Linux/macOS/Windows](https://github.com/otland/forgottenserver/blob/master/.github/workflows/build-vcpkg.yml) | [![Build with vcpkg](https://github.com/otland/forgottenserver/workflows/Build%20with%20vcpkg/badge.svg)](https://github.com/otland/forgottenserver/actions)
-
-project: [Element-0/ElementZero](https://github.com/Element-0/ElementZero) | |
-|----------|-------|
-[Windows](https://github.com/Element-0/ElementZero/blob/master/.github/workflows/ci.yml) | [![CI](https://github.com/Element-0/ElementZero/workflows/CI/badge.svg)](https://github.com/Element-0/ElementZero/actions)
-
-project: [zealdocs/zeal](https://github.com/zealdocs/zeal) | |
-|----------|-------|
-[Linux/Windows](https://github.com/zealdocs/zeal/blob/master/.github/workflows/build-check.yml) | [![Build Check](https://github.com/zealdocs/zeal/workflows/Build%20Check/badge.svg)](https://github.com/zealdocs/zeal/actions)
+|Project|Platform(s)| |
+|----------|-------|-|
+|[CppOpenGLWebAssemblyCMake](https://github.com/lukka/CppOpenGLWebAssemblyCMake) | [WASM/Linux/macOS](https://github.com/lukka/CppOpenGLWebAssemblyCMake/blob/master/.github/workflows/build.yml) | [![Actions Status](https://github.com/lukka/CppOpenGLWebAssemblyCMake/workflows/hosted-wasm-macos-linux/badge.svg)](https://github.com/lukka/CppOpenGLWebAssemblyCMake/actions)
+|[codehz/wine-bdlauncher](https://github.com/codehz/wine-bdlauncher) | [Windows](https://github.com/codehz/wine-bdlauncher/blob/master/.github/workflows/ci.yml) | [![CI](https://github.com/codehz/wine-bdlauncher/workflows/CI/badge.svg)](https://github.com/codehz/wine-bdlauncher/actions)
+|[OPM/ResInsight](https://github.com/OPM/ResInsight/) | [Windows/Linux](https://github.com/OPM/ResInsight/blob/dev/.github/workflows/main.yml) | [![CI](https://github.com/OPM/ResInsight/workflows/ResInsight%20Build/badge.svg)](https://github.com/OPM/ResInsight/actions)
+[Mudlet/Mudlet](https://github.com/Mudlet/Mudlet) | [Linux/macOS](https://github.com/Mudlet/Mudlet/blob/development/.github/workflows/build-mudlet.yml) | [![Build Mudlet](https://github.com/Mudlet/Mudlet/workflows/Build%20Mudlet/badge.svg)](https://github.com/Mudlet/Mudlet/actions)
+|[otland/forgottenserver](https://github.com/otland/forgottenserver) | [Linux/macOS/Windows](https://github.com/otland/forgottenserver/blob/master/.github/workflows/build-vcpkg.yml) | [![Build with vcpkg](https://github.com/otland/forgottenserver/workflows/Build%20with%20vcpkg/badge.svg)](https://github.com/otland/forgottenserver/actions)
+|[Element-0/ElementZero](https://github.com/Element-0/ElementZero) | [Windows](https://github.com/Element-0/ElementZero/blob/master/.github/workflows/ci.yml) | [![CI](https://github.com/Element-0/ElementZero/workflows/CI/badge.svg)](https://github.com/Element-0/ElementZero/actions)
+|[zealdocs/zeal](https://github.com/zealdocs/zeal) | [Linux/Windows](https://github.com/zealdocs/zeal/blob/master/.github/workflows/build-check.yml) | [![Build Check](https://github.com/zealdocs/zeal/workflows/Build%20Check/badge.svg)](https://github.com/zealdocs/zeal/actions)
+|[libevent/libevent](https://github.com/libevent/libevent) | [Windows](https://github.com/libevent/libevent/blob/master/.github/workflows/windows.yml)/[macos](https://github.com/libevent/libevent/blob/master/.github/workflows/macos.yml)/[Linux](https://github.com/libevent/libevent/blob/master/.github/workflows/linux.yml) | [![Windows](https://github.com/libevent/libevent/workflows/windows/badge.svg)](https://github.com/libevent/libevent/actions)[![macOS](https://github.com/libevent/libevent/workflows/macos/badge.svg)](https://github.com/libevent/libevent/actions)[![Linux](https://github.com/libevent/libevent/workflows/linux/badge.svg)](https://github.com/libevent/libevent/actions)
+|[marian-nmt/marian-dev](https://github.com/marian-nmt/marian-dev) | [Windows](https://github.com/marian-nmt/marian-dev/blob/master/.github/workflows/windows.yml)/[Linux](https://github.com/marian-nmt/marian-dev/blob/master/.github/workflows/ubuntu.yml)/[macOS](https://github.com/marian-nmt/marian-dev/blob/master/.github/workflows/macos.yml)|[![Windows](https://github.com/marian-nmt/marian-dev/workflows/Windows/badge.svg)](https://github.com/marian-nmt/marian-dev/actions/) [![Linux](https://github.com/marian-nmt/marian-dev/workflows/Ubuntu/badge.svg)](https://github.com/marian-nmt/marian-dev/actions/) [![macOS](https://github.com/marian-nmt/marian-dev/workflows/MacOS/badge.svg)](https://github.com/marian-nmt/marian-dev/actions/) 
+|[GrinPlusPlus](https://github.com/GrinPlusPlus/GrinPlusPlus) | [Linux/Windows/macOS](https://github.com/GrinPlusPlus/GrinPlusPlus/blob/master/.github/workflows/ci.yml) | [![ci](https://github.com/GrinPlusPlus/GrinPlusPlus/workflows/ci/badge.svg)](https://github.com/GrinPlusPlus/GrinPlusPlus/actions/)
 
 # License
  All the content in this repository is licensed under the [MIT License](LICENSE.txt).
 
 Copyright (c) 2019-2020 Luca Cappa
+
+# Donating
+
+Other than submitting a pull request, [donating](https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=EGNDRPRXM62G2&source=url) is another way to contribute to this project.

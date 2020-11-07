@@ -10,6 +10,16 @@ The software is provided as is, there is no warranty of any kind. All users are 
 ## Prerequisites
 [gulp 4](https://www.npmjs.com/package/gulp4) globally installed.
 
+### Setup for GitHub Registry public packages
+
+`run-cmake` depends on public NPM packages published by [lukka/run-cmake-vcpkg-action-libs](https://github.com/lukka/run-cmake-vcpkg-action-libs) in the [GitHub Packages registry](https://docs.github.com/en/free-pro-team@latest/packages/using-github-packages-with-your-projects-ecosystem/configuring-npm-for-use-with-github-packages).
+Unexpectedly, a public package still requires authentication when downloading it, hence if you want to `npm install` those packages correctly, you need to obtain a token with `read:packages` scope. Then create in the root of the repository a `.npmrc` file with the following content:
+
+   //npm.pkg.github.com/:_authToken=YOURTOKEN
+   @lukka:registry=https://npm.pkg.github.com/
+
+__Note__: **Never commit this `.npmrc` file!**
+
 ## Build and lint
 Build with `tsc` running:
 
@@ -33,11 +43,5 @@ To build, pack and test:
  To run test directly:
  
  > jest
-
-[Smoke tests](https://en.wikipedia.org/wiki/Smoke_testing_(software)) are implemented in this repository, which run the action on all platforms.
-
-Rigorous tests are executed in the builds of [CppBuildTasks](https://github.com/lukka/CppBuildTasks/) repository that shares the same engine in the [run-cmake-vcpkg-action-libs](https://github.com/lukka/run-cmake-vcpkg-action-libs) submodule.
-
-It would be desirable to have extensive tests implemented in this repository as well.
 
 Validation tests on various scenarios are run using the workflows of the [Samples](./README.md#samples).

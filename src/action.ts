@@ -2,24 +2,27 @@
 // Released under the term specified in file LICENSE.txt
 // SPDX short identifier: MIT
 
-import * as libaction from './action-lib';
-import * as core from '@actions/core'
-import * as vcpkgUtils from './vcpkg-utils';
+import * as actionlib from '@lukka/action-lib'
+import * as baseUtilLib from '@lukka/base-util-lib'
+import * as core from '@actions/core';
 import * as vcpkgAction from './vcpkg-action';
 
 export const VCPKGDIRECTORIESKEY = 'vcpkgDirectoryKey';
 
 async function main(): Promise<void> {
   try {
-    const actionLib = new libaction.ActionLib();
-    vcpkgUtils.setBaseLib(actionLib);
-    const action = new vcpkgAction.VcpkgAction(actionLib);
+    const actionLib = new actionlib.ActionLib();
+    const baseUtil = new baseUtilLib.BaseUtilLib(actionLib);
+    const action = new vcpkgAction.VcpkgAction(baseUtil);
     await action.run();
     core.info('run-vcpkg action execution succeeded');
     process.exitCode = 0;
   } catch (err) {
+    const error: Error = err as Error;
+    if (error?.stack) {
+      core.info(error.stack);
+    }
     const errorAsString = (err ?? "undefined error").toString();
-    core.debug('Error: ' + errorAsString);
     core.setFailed(`run-vcpkg action execution failed: ${errorAsString}`);
     process.exitCode = -1000;
   }
