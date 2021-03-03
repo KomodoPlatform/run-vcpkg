@@ -2,7 +2,7 @@ module.exports =
 /******/ (() => { // webpackBootstrap
 /******/ 	var __webpack_modules__ = ({
 
-/***/ 3761:
+/***/ 3902:
 /***/ (function(__unused_webpack_module, exports, __webpack_require__) {
 
 "use strict";
@@ -20,29 +20,41 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.VCPKGDIRECTORIESKEY = void 0;
+const core = __webpack_require__(2186);
+const vcpkgaction = __webpack_require__(2929);
 const actionlib = __webpack_require__(7740);
 const baseUtilLib = __webpack_require__(2365);
-const core = __webpack_require__(2186);
-const vcpkgAction = __webpack_require__(2929);
-exports.VCPKGDIRECTORIESKEY = 'vcpkgDirectoryKey';
+const vcpkgutil = __webpack_require__(4534);
 function main() {
+    var _a;
     return __awaiter(this, void 0, void 0, function* () {
+        const doNotCache = ((_a = core.getState(vcpkgaction.VCPKG_DO_NOT_CACHE_KEY)) !== null && _a !== void 0 ? _a : false) === "true";
+        const actionLib = new actionlib.ActionLib();
+        const baseUtil = new baseUtilLib.BaseUtilLib(actionLib);
         try {
-            const actionLib = new actionlib.ActionLib();
-            const baseUtil = new baseUtilLib.BaseUtilLib(actionLib);
-            const action = new vcpkgAction.VcpkgAction(baseUtil);
-            yield action.run();
-            core.info('run-vcpkg action execution succeeded');
+            yield baseUtil.wrapOp('Save vcpkg and its artifacts to cache', () => __awaiter(this, void 0, void 0, function* () {
+                // Caching in the post action happens only when in 'setupOnly:true' mode.
+                if (core.getState(vcpkgaction.VCPKG_DO_CACHE_ON_POST_ACTION_KEY) !== "true") {
+                    core.info("Skipping saving cache since the input 'setupOnly' is not set to true.");
+                    return;
+                }
+                else {
+                    // Inputs are re-evaluted before the post action, so we want the original key used for restore
+                    const cacheHit = core.getState(vcpkgaction.VCPKG_CACHE_HIT_KEY);
+                    const computedCacheKey = core.getState(vcpkgaction.VCPKG_CACHE_COMPUTED_KEY);
+                    const vcpkgRoot = core.getState(vcpkgaction.VCPKG_ROOT_KEY);
+                    const cachedPaths = vcpkgutil.Utils.getAllCachedPaths(actionLib, vcpkgRoot);
+                    yield vcpkgutil.Utils.saveCache(doNotCache, computedCacheKey, cacheHit, cachedPaths);
+                }
+            }));
+            core.info('run-vcpkg post action execution succeeded');
             process.exitCode = 0;
         }
         catch (err) {
-            const error = err;
-            if (error === null || error === void 0 ? void 0 : error.stack) {
-                core.info(error.stack);
-            }
             const errorAsString = (err !== null && err !== void 0 ? err : "undefined error").toString();
-            core.setFailed(`run-vcpkg action execution failed: ${errorAsString}`);
+            core.debug('Error: ' + errorAsString);
+            core.error(errorAsString);
+            core.setFailed('run-vcpkg post action execution failed');
             process.exitCode = -1000;
         }
     });
@@ -50,7 +62,7 @@ function main() {
 // Main entry point of the task.
 main().catch(error => console.error("main() failed!", error));
 
-//# sourceMappingURL=action.js.map
+//# sourceMappingURL=post-action.js.map
 
 
 /***/ }),
@@ -5331,7 +5343,7 @@ var __exportStar = (this && this.__exportStar) || function(m, exports) {
     for (var p in m) if (p !== "default" && !exports.hasOwnProperty(p)) __createBinding(exports, m, p);
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-__exportStar(__webpack_require__(772), exports);
+__exportStar(__webpack_require__(4408), exports);
 __exportStar(__webpack_require__(2914), exports);
 __exportStar(__webpack_require__(9841), exports);
 //# sourceMappingURL=index.js.map
@@ -5382,7 +5394,7 @@ exports.getOrdinaryCachedPaths = getOrdinaryCachedPaths;
 
 /***/ }),
 
-/***/ 772:
+/***/ 4408:
 /***/ ((__unused_webpack_module, exports) => {
 
 "use strict";
@@ -5449,7 +5461,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.VcpkgRunner = void 0;
 const path = __importStar(__webpack_require__(5622));
-const globals = __importStar(__webpack_require__(772));
+const globals = __importStar(__webpack_require__(4408));
 const baseutillib = __importStar(__webpack_require__(2365));
 class VcpkgRunner {
     constructor(tl) {
@@ -7583,12 +7595,12 @@ module.exports = function () {
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 exports.EntryHeader = __webpack_require__(9032);
-exports.MainHeader = __webpack_require__(4408);
+exports.MainHeader = __webpack_require__(8952);
 
 
 /***/ }),
 
-/***/ 4408:
+/***/ 8952:
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
 var Utils = __webpack_require__(5182),
@@ -24759,6 +24771,6 @@ module.exports = require("zlib");;
 /******/ 	// module exports must be returned from runtime so entry inlining is disabled
 /******/ 	// startup
 /******/ 	// Load entry module and return exports
-/******/ 	return __webpack_require__(3761);
+/******/ 	return __webpack_require__(3902);
 /******/ })()
 ;
